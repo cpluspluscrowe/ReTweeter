@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/amit-lulla/twitterapi"
 	"github.com/deckarep/golang-set"
@@ -20,15 +21,20 @@ func doEvery(d time.Duration, f func()) {
 }
 
 func main() {
-	doEvery(200000*time.Millisecond, Retweet)
+	doEvery(800000*time.Millisecond, FavoriteFileLines)
 }
 
-func Retweet() {
-	tweetIds = SearchAndFavorite("Kotlin", tweetIds)
-	tweetIds = SearchAndFavorite("Golang", tweetIds)
-	tweetIds = SearchAndFavorite("Scala", tweetIds)
-	tweetIds = SearchAndFavorite("Spark", tweetIds)
-	tweetIds = SearchAndFavorite("Python", tweetIds)
+func FavoriteFileLines() {
+	file, err := os.Open("./data.txt")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		fmt.Println(scanner.Text())
+		tweetIds = SearchAndFavorite(scanner.Text(), tweetIds)
+	}
 	fmt.Println()
 }
 
@@ -43,11 +49,8 @@ func SearchAndFavorite(look4 string, tweetIds mapset.Set) mapset.Set {
 	fmt.Println("Searching")
 	for _, tweet := range search.Statuses {
 		tweet_id := tweet.ID
-		//text := tweet.Text
-		//twitterClient.Statuses.Retweet(tweet_id, &twitter.StatusRetweetParams{})
 		if !tweetIds.Contains(tweet_id) {
-			fmt.Println(tweet_id)
-			//Favorite(tweet_id)
+			Favorite(tweet_id)
 		}
 		tweetIds.Add(tweet_id)
 	}
@@ -83,6 +86,5 @@ func Favorite(tweetId int64) {
 	_, err := api.Favorite(tweetId)
 	if err != nil {
 		fmt.Println(err)
-		return
 	}
 }
