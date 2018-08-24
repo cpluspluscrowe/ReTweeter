@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"github.com/amit-lulla/twitterapi"
 	"github.com/deckarep/golang-set"
@@ -14,31 +13,19 @@ import (
 
 var tweetIds = mapset.NewSet()
 
-func doEvery(d time.Duration, f func()) {
+func doEvery(d time.Duration, f func(string, *mapset.Set), look4 string, tweetIds *mapset.Set) {
 	for _ = range time.Tick(d) {
-		f()
+		f(look4, tweetIds)
 	}
 }
 
 func main() {
-	doEvery(800000*time.Millisecond, FavoriteFileLines)
+	doEvery(3600*time.Second, SearchAndFavorite, "#Golang", &tweetIds)
+	doEvery(4000*time.Second, SearchAndFavorite, "#Kotlin", &tweetIds)
+	doEvery(7000*time.Second, SearchAndFavorite, "#Scala", &tweetIds)
 }
 
-func FavoriteFileLines() {
-	file, err := os.Open("./data.txt")
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		fmt.Println(scanner.Text())
-		tweetIds = SearchAndFavorite(scanner.Text(), tweetIds)
-	}
-	fmt.Println()
-}
-
-func SearchAndFavorite(look4 string, tweetIds mapset.Set) mapset.Set {
+func SearchAndFavorite(look4 string, tweetIds *mapset.Set) {
 	twitterClient := getTwitterClient()
 	search, _, err := twitterClient.Search.Tweets(&twitter.SearchTweetParams{
 		Query: look4,
@@ -46,15 +33,17 @@ func SearchAndFavorite(look4 string, tweetIds mapset.Set) mapset.Set {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Searching")
+	fmt.Println("Searching for: ", look4, " number of tweets found: ", len(search.Statuses))
 	for _, tweet := range search.Statuses {
 		tweet_id := tweet.ID
-		if !tweetIds.Contains(tweet_id) {
+		if !(*tweetIds).Contains(tweet_id) {
 			Favorite(tweet_id)
+		} else {
+			fmt.Println("tweetIds already contains this tweet!")
 		}
-		tweetIds.Add(tweet_id)
+		(*tweetIds).Add(tweet_id)
+		return
 	}
-	return tweetIds
 }
 
 func getClient() *http.Client {
