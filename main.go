@@ -20,9 +20,11 @@ func doEvery(d time.Duration, f func(string, *mapset.Set), look4 string, tweetId
 }
 
 func main() {
-	doEvery(3600*time.Second, SearchAndFavorite, "#Golang", &tweetIds)
-	doEvery(4000*time.Second, SearchAndFavorite, "#Kotlin", &tweetIds)
-	doEvery(7000*time.Second, SearchAndFavorite, "#Scala", &tweetIds)
+	doEvery(3120*time.Second, SearchAndFavorite, "#Golang", &tweetIds)
+	doEvery(4120*time.Second, SearchAndFavorite, "#Kotlin", &tweetIds)
+	doEvery(4510*time.Second, SearchAndFavorite, "#Scala", &tweetIds)
+	doEvery(5120*time.Second, SearchAndFavorite, "#Java", &tweetIds)
+	doEvery(55120*time.Second, SearchAndFavorite, "#Haskell", &tweetIds)
 }
 
 func SearchAndFavorite(look4 string, tweetIds *mapset.Set) {
